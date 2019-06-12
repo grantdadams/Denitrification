@@ -28,21 +28,16 @@ Model determines which model to estimate. 3 being the two-station model without 
 }
 \examples{
 
-# Run model Eq. 5
-data(InitialData)
-dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, z = 0.5588)
-mod <- fitmod(dataList, model = 3)
-
 # Run model Eq. 6
 data(InitialData)
 dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, z = 0.5588)
 mod <- fitmod(dataList, model = 3)
 plotmod(mod, dataList = dataList, model = 3, file = NULL)
 
-Run model Eq. 7
+# Run model Eq. 7
 data(InitialData)
 dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.19097290833, z = 0.5588)
 mod2 <- fitmod(dataList, model = 4, verbose = FALSE)
-plotmod(mod2, dataList = dataList, model = 4, file = NULL)
+plotmod(StanFit = mod2, dataList = dataList, model = 4)
 
 }

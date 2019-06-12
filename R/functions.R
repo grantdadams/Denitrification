@@ -194,22 +194,17 @@ create_dataList <- function(data, Kmean = 4.03, Ksd = 4.0, up = "up1", down = "d
 #'
 #' @examples
 #'
-#' # Run model Eq. 5
-#' data(InitialData)
-#' dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, z = 0.5588)
-#' mod <- fitmod(dataList, model = 3)
-#'
 #' # Run model Eq. 6
 #' data(InitialData)
 #' dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, z = 0.5588)
 #' mod <- fitmod(dataList, model = 3)
 #' plotmod(mod, dataList = dataList, model = 3, file = NULL)
 #'
-#' Run model Eq. 7
+#' # Run model Eq. 7
 #' data(InitialData)
 #' dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.19097290833, z = 0.5588)
 #' mod2 <- fitmod(dataList, model = 4, verbose = FALSE)
-#' plotmod(mod2, dataList = dataList, model = 4, file = NULL)
+#' plotmod(StanFit = mod2, dataList = dataList, model = 4)
 #'
 fitmod <- function(dataList, model = 3, nChains = 2, niter = 3000, burnin = 1000, verbose = FALSE){
 
@@ -237,7 +232,7 @@ fitmod <- function(dataList, model = 3, nChains = 2, niter = 3000, burnin = 1000
 }
 
 
-#' Plot and diagnost
+#' Plot and diagnose
 #'
 #' @param StanFit Standmodel output by \code{fitmod}
 #' @param dataList dataList created by \code{create_dataList}
@@ -251,9 +246,10 @@ fitmod <- function(dataList, model = 3, nChains = 2, niter = 3000, burnin = 1000
 plotmod <- function(StanFit, dataList, model = 3, file = NULL){
 
   # Results of parameters to return
-  results <- summary(StanFit)$summary
+  results <- rstan::summary(StanFit)$summary
   rows_sub <- c(grep( "n2hat", rownames(results)), grep( "n2pred", rownames(results)))
   results <- results[-rows_sub,]
+
 
   if(model == 3){
     params_names <- c("DN", "K600", "sigma2", "logPost")
@@ -263,7 +259,7 @@ plotmod <- function(StanFit, dataList, model = 3, file = NULL){
   }
 
   rownames(results) <- params_names
-  print(results)
+
 
   if(!is.null(file)){
     write.csv(results, file = paste0(file, ".csv"))
@@ -274,7 +270,6 @@ plotmod <- function(StanFit, dataList, model = 3, file = NULL){
 
   n2hat <- returned_objects$n2hat
   n2pred <- returned_objects$n2pred
-
 
   # Plot it
   for(i in 1:length(1+!is.null(file))){

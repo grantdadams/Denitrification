@@ -2,7 +2,7 @@
 % Please edit documentation in R/functions.R
 \name{plotmod}
 \alias{plotmod}
-\title{Plot and diagnost}
+\title{Plot and diagnose}
 \usage{
 plotmod(StanFit, dataList, model = 3, file = NULL)
 }
@@ -16,7 +16,7 @@ plotmod(StanFit, dataList, model = 3, file = NULL)
 \item{file}{filname to save the parameter estimates. Will not save if NULL.}
 }
 \description{
-Plot and diagnost
+Plot and diagnose
 }
 \details{
 Model determines which model to estimate. 3 being the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
