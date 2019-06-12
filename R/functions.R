@@ -101,8 +101,7 @@ arsatfc<-function(temp, salinity, bp){
 #'
 #' @export
 #'
-#' @examples
-create_dataList <- function(data, Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, z){
+create_dataList <- function(data, Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, z = 0.5588){
 
   # Convert data
   data$arsat <- arsatfc(temp=data$temp, salinity=0, bp=data$bp)
@@ -163,13 +162,15 @@ create_dataList <- function(data, Kmean = 4.03, Ksd = 4.0, up = "up1", down = "d
 #' @export
 #'
 #' @examples
-fitmod <- function(data, model = 3, chains, verbose = FALSE, warmup, Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, z){
+#'
+#' dataList <- create_dataList(InitialData, , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, z)
+fitmod <- function(dataList, model = 3, nChains = 2, niter = 3000, burnin = 1000, verbose = FALSE, warmup){
 
 # Data set up
-  dataList <- create_dataList(data, Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, z)
+
   dataList$model = model
 
-  StanFit <- stan('src/nn2_model.stan', data = dataList, iter = 3000, chains = nChains, verbose = FALSE, warmup = 1000)
+  # StanFit <- stan('src/nn2_model.stan', data = dataList, iter = niter, chains = nChains, verbose = FALSE, warmup = burnin)
 
 
 }

@@ -5,7 +5,7 @@
 \title{Data list}
 \usage{
 create_dataList(data, Kmean = 4.03, Ksd = 4, up = "up1",
-  down = "down1", tt = 0.1909720833, z)
+  down = "down1", tt = 0.1909720833, z = 0.5588)
 }
 \arguments{
 \item{data}{}

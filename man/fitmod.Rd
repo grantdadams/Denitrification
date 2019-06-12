@@ -4,16 +4,21 @@
 \alias{fitmod}
 \title{Estimate}
 \usage{
-fitmod(data, model = 3, chains, verbose = FALSE, warmup)
+fitmod(dataList, model = 3, nChains = 2, niter = 3000,
+  burnin = 1000, verbose = FALSE, warmup)
 }
 \arguments{
-\item{data}{data.frame object with columnds for station, temperature, n2.ar, light, bp, z, and dtime, arsat, and n2sat}
-
 \item{model}{Model number for fitting algorithm.}
+
+\item{data}{data.frame object with columnds for station, temperature, n2.ar, light, bp, z, and dtime, arsat, and n2sat}
 }
 \description{
 Estimate
 }
 \details{
 Model determines which model to estimate. 3 being the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
+}
+\examples{
+
+dataList <- create_dataList(InitialData, , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, z)
 }
