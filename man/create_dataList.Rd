@@ -8,7 +8,7 @@ create_dataList(data, Kmean = 4.03, Ksd = 4, up = "up1",
   down = "down1", tt = 0.1909720833, z = 0.5588)
 }
 \arguments{
-\item{data}{A data.frame object with different data}
+\item{data}{data.frame object with columnds for station, temperature, n2.ar, light, bp, z, and dtime, arsat, and n2sat}
 
 \item{Kmean}{Mean of normal prior distribution for K600}
 

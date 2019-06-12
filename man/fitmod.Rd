@@ -2,23 +2,47 @@
 % Please edit documentation in R/functions.R
 \name{fitmod}
 \alias{fitmod}
-\title{Estimate}
+\title{Estimate model}
 \usage{
 fitmod(dataList, model = 3, nChains = 2, niter = 3000,
-  burnin = 1000, verbose = FALSE, warmup)
+  burnin = 1000, verbose = FALSE)
 }
 \arguments{
+\item{dataList}{dataList created by \code{create_dataList}}
+
 \item{model}{Model number for fitting algorithm.}
 
-\item{data}{data.frame object with columnds for station, temperature, n2.ar, light, bp, z, and dtime, arsat, and n2sat}
+\item{nChains}{Number of chains to run}
+
+\item{niter}{Number of iterations to run for each chain (including burnin)}
+
+\item{burnin}{A positive integer specifying the number of warmup (aka burnin) iterations per chain.}
+
+\item{verbose}{TRUE or FALSE: flag indicating whether to print intermediate output from Stan on the console, which might be helpful for model debugging.}
 }
 \description{
-Estimate
+fits a stan model and returns a stan model object
 }
 \details{
 Model determines which model to estimate. 3 being the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
 }
 \examples{
 
-dataList <- create_dataList(InitialData, , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, z)
+# Run model Eq. 5
+data(InitialData)
+dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, z = 0.5588)
+mod <- fitmod(dataList, model = 3)
+
+# Run model Eq. 6
+data(InitialData)
+dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, z = 0.5588)
+mod <- fitmod(dataList, model = 3)
+plotmod(mod, dataList = dataList, model = 3, file = NULL)
+
+Run model Eq. 7
+data(InitialData)
+dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.19097290833, z = 0.5588)
+mod2 <- fitmod(dataList, model = 4, verbose = FALSE)
+plotmod(mod2, dataList = dataList, model = 4, file = NULL)
+
 }
