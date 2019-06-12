@@ -1,0 +1,33 @@
+Package: USAboundariesData
+Type: Package
+Title: Datasets for the 'USAboundaries' package
+Version: 0.3.0
+Authors@R: c(person("Lincoln", "Mullen",
+    email = "lincoln@lincolnmullen.com",
+    role = c("aut", "cre")),
+    person("Dr. William M. Scholl Center for American History and Culture,
+    The Newberry Library", role = "cph"),
+    person("United States Census Bureau", role = "cph"),
+    person("Erik", "Steiner", role = "ctb")
+    )
+Description: Contains datasets, including higher resolution boundary data, for
+    use in the 'USAboundaries' package. These datasets come from the U.S. Census
+    Bureau, the Newberry Library's 'Historical Atlas of U.S. County
+    Boundaries', and Erik Steiner's 'United States Historical City Populations, 
+    1790-2010'.
+License: CC BY-NC-SA 4.0
+LazyData: TRUE
+LazyDataCompression: xz
+URL: https://github.com/ropensci/USAboundariesData
+BugReports: https://github.com/ropensci/USAboundariesData/issues
+Depends: R (>= 3.1.0)
+RoxygenNote: 6.0.1
+NeedsCompilation: no
+Packaged: 2017-07-26 00:46:27 UTC; root
+Author: Lincoln Mullen [aut, cre],
+  Dr. William M. Scholl Center for American History and Culture, The
+    Newberry Library [cph],
+  United States Census Bureau [cph],
+  Erik Steiner [ctb]
+Maintainer: Lincoln Mullen <lincoln@lincolnmullen.com>
+Built: R 3.4.2; ; 2017-11-06 07:13:56 UTC; windows

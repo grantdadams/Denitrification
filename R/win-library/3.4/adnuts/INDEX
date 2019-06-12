@@ -1,0 +1,22 @@
+adnuts                  adnuts: No-U-turn sampling for Template Model
+                        Builder and AD Model Builder
+extract_sampler_params
+                        Extract sampler parameters from a fit.
+extract_samples         Extract posterior samples from a model fit.
+launch_shinyadmb        Launch shinystan for an ADMB fit.
+launch_shinytmb         Launch shinystan for a TMB fit.
+sample_admb             Bayesian inference of an ADMB model using the
+                        no-U-turn sampler.
+sample_admb_nuts        Run a single NUTS chain for an ADMB model
+sample_admb_rwm         Run a single random walk Metropolis chain for
+                        an ADMB model
+sample_tmb              Bayesian inference of a TMB model using the
+                        no-U-turn sampler.
+sample_tmb_hmc          Draw MCMC samples from a model posterior using
+                        a static HMC sampler.
+sample_tmb_nuts         Draw MCMC samples from a model posterior using
+                        the No-U-Turn (NUTS) sampler with dual
+                        averaging.
+sample_tmb_rwm          [Deprecated] Draw MCMC samples from a model
+                        posterior using a Random Walk Metropolis (RWM)
+                        sampler.

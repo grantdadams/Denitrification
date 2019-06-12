@@ -1,0 +1,26 @@
+---
+title: "baserun"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{baserun}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Load data
+```{r}
+library(denitrification)
+data("InitialData")
+# data$dtime<-chron::chron(dates=as.character(data$date), times=as.character(data$time))
+```
+
+# Convert data
+```{r}
+
+```
+
+# Set up initial parameters
+```{r}
+tt <- 0.1909720833
+lag <- round(tt/0.0636573611)
+```
