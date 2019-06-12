@@ -97,7 +97,15 @@ arsatfc<-function(temp, salinity, bp){
 
 #' Data list
 #'
-#' @param data
+#' @description Creates a list of data objects to be used by stan
+#'
+#' @param data A data.frame object with different data
+#' @param Kmean Mean of normal prior distribution for K600
+#' @param Ksd Sd of normal prior distribution for K600
+#' @param up Name indicating the up-river station name
+#' @param down Name indicating the down-river station name
+#' @param tt Time between stations
+#' @param z Depth
 #'
 #' @export
 #'
