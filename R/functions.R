@@ -1,5 +1,3 @@
-
-
 #' Water density
 #'
 #' @description Function to calculate the water density as a function of temperature.
