@@ -374,7 +374,7 @@ plotmod <- function(StanFit, dataList, model = 3, file = NULL){
 
     # Main plot
     plot(dataList$time ,rep(NA, length(dataList$time)), type="l",xlab="Time", ylab="Nitrogen  (mg/L)",
-         ylim=c(min(posterior_summary[7, ]), max(posterior_summary[8, ])), lwd=3, col="black" , xaxt = "n", las = 1)
+         ylim=c(min(c(as.numeric(posterior_summary[7, ]), dataList$observed)), max(c(as.numeric(posterior_summary[8, ]), dataList$observed))), lwd=3, col="black" , xaxt = "n", las = 1)
 
     # Axis
     x_pos <- dataList1$time[c(FALSE, TRUE, FALSE, FALSE)]
@@ -415,7 +415,7 @@ plotmod <- function(StanFit, dataList, model = 3, file = NULL){
 
     # Main plot
     plot(dataList$time,rep(NA, length(dataList$time)), type="l",xlab="Time", ylab="Nitrogen  (mg/L)",
-         ylim=c(min(predictive_summary[7, ]), max(predictive_summary[8, ])), lwd=3, col="black", main = "Posterior Predictive Check", xaxt = "n", las = 1)
+         ylim=c(min(c(as.numeric(predictive_summary[3, ]), dataList$observed)), max(c(as.numeric(predictive_summary[4, ]), dataList$observed))), lwd=3, col="black", main = "Posterior Predictive Check", xaxt = "n", las = 1)
 
     # Axis
     x_pos <- dataList1$time[c(FALSE, TRUE, FALSE, FALSE)]
