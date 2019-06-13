@@ -277,6 +277,8 @@ fitmod <- function(dataList, model = 3, nChains = 2, niter = 3000, burnin = 1000
   StanFit <- rstan::stan("nn2_model.stan", data = dataList, iter = niter, chains = nChains, verbose = verbose, warmup = burnin)
   setwd(old_wd)
 
+  # Rename parameters
+
   return(StanFit)
 }
 
@@ -371,11 +373,11 @@ plotmod <- function(StanFit, dataList, model = 3, file = NULL){
     }
 
     # Main plot
-    plot(1:length(dataList$time) ,rep(NA, length(dataList$time)), type="l",xlab="Time", ylab="Nitrogen  (mg/L)",
+    plot(dataList$time ,rep(NA, length(dataList$time)), type="l",xlab="Time", ylab="Nitrogen  (mg/L)",
          ylim=c(min(posterior_summary[7, ]), max(posterior_summary[8, ])), lwd=3, col="black" , xaxt = "n", las = 1)
 
     # Axis
-    x_pos <- c(1:length(dataList1$time))[c(FALSE, TRUE, FALSE, FALSE)]
+    x_pos <- dataList1$time[c(FALSE, TRUE, FALSE, FALSE)]
     x_axt <- chron::hours(dataList1$time[c(FALSE, TRUE, FALSE, FALSE)])
     x_axt <- ifelse(x_axt == 0, 24, x_axt)
     xlab <- ifelse(x_axt < 12, paste0(x_axt, "am"), paste0(x_axt - 12, "pm"))
@@ -416,7 +418,7 @@ plotmod <- function(StanFit, dataList, model = 3, file = NULL){
          ylim=c(min(predictive_summary[7, ]), max(predictive_summary[8, ])), lwd=3, col="black", main = "Posterior Predictive Check", xaxt = "n", las = 1)
 
     # Axis
-    x_pos <- c(1:length(dataList1$time))[c(FALSE, TRUE, FALSE, FALSE)]
+    x_pos <- dataList1$time[c(FALSE, TRUE, FALSE, FALSE)]
     x_axt <- chron::hours(dataList1$time[c(FALSE, TRUE, FALSE, FALSE)])
     x_axt <- ifelse(x_axt == 0, 24, x_axt)
     xlab <- ifelse(x_axt < 12, paste0(x_axt, "am"), paste0(x_axt - 12, "pm"))
