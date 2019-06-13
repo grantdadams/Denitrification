@@ -376,7 +376,7 @@ plotmod <- function(StanFit, dataList, model = 3, file = NULL){
 
     # Axis
     x_pos <- c(1:length(dataList1$time))[c(FALSE, TRUE, FALSE, FALSE)]
-    x_axt <- hours(dataList1$time[c(FALSE, TRUE, FALSE, FALSE)])
+    x_axt <- chron::hours(dataList1$time[c(FALSE, TRUE, FALSE, FALSE)])
     x_axt <- ifelse(x_axt == 0, 24, x_axt)
     xlab <- ifelse(x_axt < 12, paste0(x_axt, "am"), paste0(x_axt - 12, "pm"))
     xlab <- ifelse(xlab == "12pm", "12am", xlab)
@@ -417,7 +417,7 @@ plotmod <- function(StanFit, dataList, model = 3, file = NULL){
 
     # Axis
     x_pos <- c(1:length(dataList1$time))[c(FALSE, TRUE, FALSE, FALSE)]
-    x_axt <- hours(dataList1$time[c(FALSE, TRUE, FALSE, FALSE)])
+    x_axt <- chron::hours(dataList1$time[c(FALSE, TRUE, FALSE, FALSE)])
     x_axt <- ifelse(x_axt == 0, 24, x_axt)
     xlab <- ifelse(x_axt < 12, paste0(x_axt, "am"), paste0(x_axt - 12, "pm"))
     xlab <- ifelse(xlab == "12pm", "12am", xlab)
