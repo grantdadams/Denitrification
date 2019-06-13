@@ -24,19 +24,19 @@ fitmod(dataList, model = 3, nChains = 2, niter = 3000,
 fits a stan model and returns a stan model object
 }
 \details{
-Model determines which model to estimate. 3 being the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
+Model determines which model to estimate. 1 is the single station model without N consumption (DN base model), 2 is the single station model with N consumption (DN + Nconsume), the  3 being the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
 }
 \examples{
 
 # Run model Eq. 6
 data(InitialData)
-dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, z = 0.5588)
+dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, depth = 0.5588)
 mod <- fitmod(dataList, model = 3)
 plotmod(mod, dataList = dataList, model = 3, file = NULL)
 
 # Run model Eq. 7
 data(InitialData)
-dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.19097290833, z = 0.5588)
+dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.19097290833, depth = 0.5588)
 mod2 <- fitmod(dataList, model = 4, verbose = FALSE)
 plotmod(StanFit = mod2, dataList = dataList, model = 4)
 

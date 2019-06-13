@@ -98,18 +98,19 @@ arsatfc<-function(temp, salinity, bp){
 #' @description Creates a list of data objects to be used by stan
 #'
 #' @param data data.frame object with columnds for station, temperature, n2.ar, light, bp, z, and dtime, arsat, and n2sat
+#' @param model Model number for fitting algorithm.
 #' @param Kmean Mean of normal prior distribution for K600
 #' @param Ksd Sd of normal prior distribution for K600
 #' @param up Name indicating the up-river station name
 #' @param down Name indicating the down-river station name
 #' @param tt Time between stations
-#' @param z Depth
+#' @param depth Depth (m)
+#'
+#' @details Model determines which model to estimate. 1 is the single station model without N consumption (DN base model), 2 is the single station model with N consumption (DN + Nconsume), the  3 being the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
 #'
 #' @export
 #'
-create_dataList <- function(data, Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, z = 0.5588){
-
-
+create_dataList <- function(data, model = 1, Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, depth = 0.5588){
 
   # Convert data
   data$arsat <- arsatfc(temp=data$temp, salinity=0, bp=data$bp)
@@ -117,58 +118,108 @@ create_dataList <- function(data, Kmean = 4.03, Ksd = 4.0, up = "up1", down = "d
   data$n2convert <- data$n2.ar * (28.014 / 1000) / (39.948 / 1000) * data$arsat
   data$dtime<-chron::chron(dates=as.character(data$date), times=as.character(data$time))
 
-  # Subset data
-  updata <- data[data$station == up,]
-  downdata <- data[data$station == down,]
+
 
   # Create list of data objects
   data_list <- list()
 
-  # Data size
-  data_list$nobs <- nrow(data)
-  nup  <- nrow(updata)
-  ndown <- nrow(downdata)
+  ############################################
+  # 1 Station models
+  if(model <= 2){
 
-  # Data objects
-  data_list$lag <- round(tt / 0.0636573611) # 3 for measured Ditch 2 HRT  ~4.58333/24= 0.1909720833/3 =0.063657
 
-  # Data-subsets
-  up_sub <- 1:(nup - data_list$lag)
-  down_sub <- (1 + data_list$lag):ndown
+    data_list$lag = 0
+  }
 
-  # Temperature
-  data_list$tempup <- updata$temp[up_sub]
-  data_list$tempdown <- downdata$temp[down_sub]
+  ############################################
+  # 1 Station models
+  if(model <= 2){
 
-  # N2
-  data_list$n2up <- updata$n2convert[up_sub]
-  data_list$n2down <- downdata$n2convert[down_sub]
+    # Data objects and size
+    data_list$nobs  <- nrow(data)
 
-  # BP
-  data_list$bpup <- updata$bp[up_sub]
-  data_list$bpdown <- downdata$bp[down_sub]
+    data_obj <- matrix(NA, ncol = 4, nrow = data_list$nobs)
 
-  # N2 equilibrium concentration
-  data_list$n2equilup <- n2satfc(data_list$tempup, 0, data_list$bpup )
-  data_list$n2equildown <- n2satfc(data_list$tempdown, 0, data_list$bpdown)
+    # Assign data to obj
+    data_obj[,1] <- data$temp     # Temperature
+    data_obj[,2] <- n2satfc(data_obj[,1], 0, data$bp )    # N2 equilibrium concentration
+    data_obj[,3] <- data$n2convert     # N2
+    data_obj[,4] <- c(-999, data$dtime[2:length(data$dtime)] - data$dtime[1:(length(data$dtime) - 1)])    # delta t
 
-  # Time object
-  data_list$timedown <- downdata$dtime[down_sub]
-  data_list$timeup<-updata$dtime[up_sub]
+    # Light
+    data$light<-data$light
 
-  # Light
-  data_list$light<-downdata$light
+    # Parameters
+    data_list$Kmean = Kmean
+    data_list$Ksd = Ksd
+    data_list$lag <- 0 # Not used
 
-  # Parameters
-  data_list$Kmean = Kmean
-  data_list$Ksd = Ksd
+    # Depth and time
+    data_list$z = depth
+    data_list$tt = 0 # Not used
+    data_list$time <- data$dtime
 
-  # Depth and time
-  data_list$z = z
-  data_list$tt = tt
+    # Light
+    data_list$light<-data$light
 
-  data_list$nup  <- length(up_sub)
-  data_list$ndown <- length(down_sub)
+    # Data size
+    data_list$data_obj <- data_obj
+    data_list$ncol  <- ncol(data_obj)
+    data_list$observed <- data_obj[,3]
+
+  }
+
+  ############################################
+  # 2 Station models
+  if(model > 2){
+    # Subset data
+    updata <- data[data$station == up,]
+    downdata <- data[data$station == down,]
+    nup  <- nrow(updata)
+    ndown <- nrow(downdata)
+
+    if(nrow(updata) != nrow(downdata)){
+      stop("Number of up and down stations do not match")
+    }
+
+    # Data objects and size
+    data_list$lag <- round(tt / 0.0636573611) # 3 for measured Ditch 2 HRT  ~4.58333/24= 0.1909720833/3 =0.063657
+    up_sub <- 1:(nup - data_list$lag)
+    down_sub <- (1 + data_list$lag):ndown
+
+    data_list$nobs  <- length(up_sub)
+    data_obj <- matrix(NA, ncol = 6, nrow = data_list$nobs)
+
+    # Temperature
+    data_obj[,1] <- updata$temp[up_sub]
+    data_obj[,2] <- downdata$temp[down_sub]
+
+    # N2 equilibrium concentration
+    data_obj[,3] <- n2satfc(data_obj[,1], 0, updata$bp[up_sub] )
+    data_obj[,4] <- n2satfc(data_obj[,2], 0, downdata$bp[down_sub])
+
+    # N2
+    data_obj[,5] <- updata$n2convert[up_sub]
+    data_obj[,6] <- downdata$n2convert[down_sub]
+
+    # Light
+    data_list$light<-downdata$light
+
+    # Parameters
+    data_list$Kmean = Kmean
+    data_list$Ksd = Ksd
+
+    # Depth and time
+    data_list$z = depth
+    data_list$tt = tt
+    data_list$time <- downdata$dtime[down_sub]
+
+    # Data size
+    data_list$data_obj <- data_obj
+    data_list$ncol  <- ncol(data_obj)
+
+    data_list$observed <- data_obj[,6]
+  }
 
   return(data_list)
 }
@@ -186,7 +237,7 @@ create_dataList <- function(data, Kmean = 4.03, Ksd = 4.0, up = "up1", down = "d
 #' @param burnin A positive integer specifying the number of warmup (aka burnin) iterations per chain.
 #' @param verbose TRUE or FALSE: flag indicating whether to print intermediate output from Stan on the console, which might be helpful for model debugging.
 #'
-#' @details Model determines which model to estimate. 3 being the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
+#' @details Model determines which model to estimate. 1 is the single station model without N consumption (DN base model), 2 is the single station model with N consumption (DN + Nconsume), the  3 being the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
 #'
 #' @export
 #'
@@ -194,13 +245,13 @@ create_dataList <- function(data, Kmean = 4.03, Ksd = 4.0, up = "up1", down = "d
 #'
 #' # Run model Eq. 6
 #' data(InitialData)
-#' dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, z = 0.5588)
+#' dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, depth = 0.5588)
 #' mod <- fitmod(dataList, model = 3)
 #' plotmod(mod, dataList = dataList, model = 3, file = NULL)
 #'
 #' # Run model Eq. 7
 #' data(InitialData)
-#' dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.19097290833, z = 0.5588)
+#' dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.19097290833, depth = 0.5588)
 #' mod2 <- fitmod(dataList, model = 4, verbose = FALSE)
 #' plotmod(StanFit = mod2, dataList = dataList, model = 4)
 #'
@@ -208,11 +259,11 @@ fitmod <- function(dataList, model = 3, nChains = 2, niter = 3000, burnin = 1000
 
   # Model set up
   dataList$mod = model
-  if(model == 3){
+  if(model %in% c(1,3)){
     dataList$nparam = 2
     params_names <- c("DN", "K600", "sigma2", "logPost")
   }
-  if(model == 4){
+  if(model %in% c(2,4)){
     dataList$nparam = 3
     params_names <- c("DN", "K600", "Nfix", "sigma2", "logPost")
   }
@@ -237,22 +288,23 @@ fitmod <- function(dataList, model = 3, nChains = 2, niter = 3000, burnin = 1000
 #' @param model Model number for fitting algorithm.
 #' @param file filname to save the parameter estimates. Will not save if NULL.
 #'
-#' @details Model determines which model to estimate. 3 being the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
+#' @details Model determines which model to estimate. 1 is the single station model without N consumption (DN base model), 2 is the single station model with N consumption (DN + Nconsume), the  3 being the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
 #' @export
 #'
 #' @examples
 plotmod <- function(StanFit, dataList, model = 3, file = NULL){
 
+  ##########################################
   # Results of parameters to return
   results <- rstan::summary(StanFit)$summary
   rows_sub <- c(grep( "n2hat", rownames(results)), grep( "n2pred", rownames(results)))
   results <- results[-rows_sub,]
 
 
-  if(model == 3){
+  if(model %in% c(1,3)){
     params_names <- c("DN", "K600", "sigma2", "logPost")
   }
-  if(model == 4){
+  if(model %in% c(2,4)){
     params_names <- c("DN", "K600", "Nfix", "sigma2", "logPost")
   }
 
@@ -265,20 +317,111 @@ plotmod <- function(StanFit, dataList, model = 3, file = NULL){
 
   # Get list of returned objects
   returned_objects <- extract(StanFit)
+  n2hat <- returned_objects$n2hat # Predicted mean
+  n2pred <- returned_objects$n2pred # Posterior predictive
 
-  n2hat <- returned_objects$n2hat
-  n2pred <- returned_objects$n2pred
+  ##########################################
+  # Summarize posterior and posterior predictive
+  row_names <- c("mean", "median",
+                 "2.5%PI", "97.5%PI",
+                 "5%PI", "95%PI",
+                 "min", "max", "n")
 
-  # Plot it
+  posterior_summary <- matrix(nrow = length(row_names), ncol = dim(n2hat)[2])
+  posterior_summary[1, ] <- colMeans(n2hat)
+  posterior_summary[2:6, ] <- apply(n2hat, 2, quantile, probs= c(0.5, 0.025, 0.975, 0.25, 0.75))
+  posterior_summary[7, ] <- apply(n2hat, 2, min)
+  posterior_summary[8, ] <- apply(n2hat, 2, max)
+  posterior_summary <-as.data.frame(posterior_summary)
+  names(posterior_summary) <- names(n2hat)
+  row.names(posterior_summary) <- row_names
+
+  predictive_summary <- matrix(nrow = length(row_names), ncol = dim(n2pred)[2])
+  predictive_summary[1, ] <- colMeans(n2pred)
+  predictive_summary[2:6, ] <- apply(n2pred, 2, quantile, probs= c(0.5, 0.025, 0.975, 0.25, 0.75))
+  predictive_summary[7, ] <- apply(n2pred, 2, min)
+  predictive_summary[8, ] <- apply(n2pred, 2, max)
+  predictive_summary <-as.data.frame(predictive_summary)
+  names(predictive_summary) <- names(n2pred)
+  row.names(predictive_summary) <- row_names
+
+  ##########################################
+  # Plots
+
+  # Plot mean
   for(i in 1:length(1+!is.null(file))){
     if(!is.null(file)){
-    png(filename = paste0(file, ".png"), height = 4, width = 6, units = "in")
+      png(filename = paste0(file, ".png"), height = 4, width = 6, units = "in")
     }
-    plot(dataList$timedown,colMeans(n2hat), type="l",xlab="Time", ylab="Nitrogen  (mg/L)", ylim=c(11,15),cex.lab=1.5, cex.axis=1.5, lwd=3, col="black" )
-    points(dataList$timedown,dataList$n2down)
+
+    plot(dataList$time,colMeans(n2hat), type="l",xlab="Time", ylab="Nitrogen  (mg/L)", ylim=c(11,15),cex.lab=1.5, cex.axis=1.5, lwd=3, col="black" )
+    points(dataList$time,dataList$observed)
 
     if(!is.null(file)){
-     dev.off()
+      dev.off()
+    }
+  }
+
+
+  # Plot mean with CI
+  for(i in 1:length(1+!is.null(file))){
+    if(!is.null(file)){
+      png(filename = paste0(file, "CI.png"), height = 4, width = 6, units = "in")
+    }
+
+    # Main plot
+    plot(dataList$time,rep(NA, length(dataList$time)), type="l",xlab="Time", ylab="Nitrogen  (mg/L)",
+         ylim=c(min(posterior_summary[7, ]), max(posterior_summary[8, ])),cex.lab=1.5, cex.axis=1.5, lwd=3, col="black" )
+
+    # Credible interval
+    polygon(
+      x = c(dataList$time, rev(dataList$time)),
+      y = c(posterior_summary[3, ], rev(posterior_summary[4, ])),
+      col = "grey80", border = NA) # 95% CI
+    polygon( x = c(dataList$time, rev(dataList$time)),
+             y = c(posterior_summary[5, ], rev(posterior_summary[6, ])),
+             col = "grey60", border = NA) # 90% CI
+
+    # Median
+    lines( x = dataList$time, y = posterior_summary[2, ], lty = 1, lwd = 3, col = 1) # Median
+
+    # Observed
+    points(dataList$time,dataList$observed)
+
+
+    if(!is.null(file)){
+      dev.off()
+    }
+  }
+
+
+  # Plot posterior predictive
+  for(i in 1:length(1+!is.null(file))){
+    if(!is.null(file)){
+      png(filename = paste0(file, "posterior_predictive.png"), height = 4, width = 6, units = "in")
+    }
+
+    # Main plot
+    plot(dataList$time,rep(NA, length(dataList$time)), type="l",xlab="Time", ylab="Nitrogen  (mg/L)",
+         ylim=c(min(predictive_summary[7, ]), max(predictive_summary[8, ])),cex.lab=1.5, cex.axis=1.5, lwd=3, col="black", main = "Posterior Predictive Check")
+
+    # Credible interval
+    polygon(
+      x = c(dataList$time, rev(dataList$time)),
+      y = c(predictive_summary[3, ], rev(predictive_summary[4, ])),
+      col = "grey80", border = NA) # 95% CI
+    polygon( x = c(dataList$time, rev(dataList$time)),
+             y = c(predictive_summary[5, ], rev(predictive_summary[6, ])),
+             col = "grey60", border = NA) # 90% CI
+
+    # Median
+    lines( x = dataList$time, y = predictive_summary[2, ], lty = 1, lwd = 3, col = 1) # Median
+
+    # Observed
+    points(dataList$time, dataList$observed)
+
+    if(!is.null(file)){
+      dev.off()
     }
   }
 

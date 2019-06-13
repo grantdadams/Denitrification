@@ -19,5 +19,5 @@ plotmod(StanFit, dataList, model = 3, file = NULL)
 Plot and diagnose
 }
 \details{
-Model determines which model to estimate. 3 being the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
+Model determines which model to estimate. 1 is the single station model without N consumption (DN base model), 2 is the single station model with N consumption (DN + Nconsume), the  3 being the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
 }

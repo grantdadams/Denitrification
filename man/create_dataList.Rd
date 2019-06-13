@@ -4,11 +4,13 @@
 \alias{create_dataList}
 \title{Data list}
 \usage{
-create_dataList(data, Kmean = 4.03, Ksd = 4, up = "up1",
-  down = "down1", tt = 0.1909720833, z = 0.5588)
+create_dataList(data, model = 1, Kmean = 4.03, Ksd = 4, up = "up1",
+  down = "down1", tt = 0.1909720833, depth = 0.5588)
 }
 \arguments{
 \item{data}{data.frame object with columnds for station, temperature, n2.ar, light, bp, z, and dtime, arsat, and n2sat}
+
+\item{model}{Model number for fitting algorithm.}
 
 \item{Kmean}{Mean of normal prior distribution for K600}
 
@@ -20,8 +22,11 @@ create_dataList(data, Kmean = 4.03, Ksd = 4, up = "up1",
 
 \item{tt}{Time between stations}
 
-\item{z}{Depth}
+\item{depth}{Depth (m)}
 }
 \description{
 Creates a list of data objects to be used by stan
+}
+\details{
+Model determines which model to estimate. 1 is the single station model without N consumption (DN base model), 2 is the single station model with N consumption (DN + Nconsume), the  3 being the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
 }
