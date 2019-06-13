@@ -348,30 +348,40 @@ plotmod <- function(StanFit, dataList, model = 3, file = NULL){
   ##########################################
   # Plots
 
-  # Plot mean
-  for(i in 1:length(1+!is.null(file))){
-    if(!is.null(file)){
-      png(filename = paste0(file, ".png"), height = 4, width = 6, units = "in")
-    }
-
-    plot(dataList$time,colMeans(n2hat), type="l",xlab="Time", ylab="Nitrogen  (mg/L)", ylim=c(11,15),cex.lab=1.5, cex.axis=1.5, lwd=3, col="black" )
-    points(dataList$time,dataList$observed)
-
-    if(!is.null(file)){
-      dev.off()
-    }
-  }
+  # # Plot mean
+  # for(i in 1:length(1+!is.null(file))){
+  #   if(!is.null(file)){
+  #     png(filename = paste0(file, ".png"), height = 4, width = 6, units = "in", res = 300)
+  #   }
+  #
+  #   plot(dataList$time,colMeans(n2hat), type="l",xlab="Time", ylab="Nitrogen  (mg/L)", ylim=c(11,15),cex.lab=1.5, cex.axis=1.5, lwd=3, col="black" )
+  #   points(dataList$time,dataList$observed)
+  #
+  #   if(!is.null(file)){
+  #     dev.off()
+  #   }
+  # }
 
 
   # Plot mean with CI
-  for(i in 1:length(1+!is.null(file))){
-    if(!is.null(file)){
-      png(filename = paste0(file, "CI.png"), height = 4, width = 6, units = "in")
+  for(i in 1:(1+!is.null(file))){
+
+    if(i == 2){
+      png(filename = paste0(file, "CI.png"), height = 5, width = 7, units = "in", res = 300)
     }
 
     # Main plot
-    plot(dataList$time,rep(NA, length(dataList$time)), type="l",xlab="Time", ylab="Nitrogen  (mg/L)",
-         ylim=c(min(posterior_summary[7, ]), max(posterior_summary[8, ])),cex.lab=1.5, cex.axis=1.5, lwd=3, col="black" )
+    plot(1:length(dataList$time) ,rep(NA, length(dataList$time)), type="l",xlab="Time", ylab="Nitrogen  (mg/L)",
+         ylim=c(min(posterior_summary[7, ]), max(posterior_summary[8, ])), lwd=3, col="black" , xaxt = "n", las = 1)
+
+    # Axis
+    x_pos <- c(1:length(dataList1$time))[c(FALSE, TRUE, FALSE, FALSE)]
+    x_axt <- hours(dataList1$time[c(FALSE, TRUE, FALSE, FALSE)])
+    x_axt <- ifelse(x_axt == 0, 24, x_axt)
+    xlab <- ifelse(x_axt < 12, paste0(x_axt, "am"), paste0(x_axt - 12, "pm"))
+    xlab <- ifelse(xlab == "12pm", "12am", xlab)
+    xlab <- ifelse(xlab == "0pm", "12pm", xlab)
+    axis(1,at=x_pos, labels=xlab,las=1)
 
     # Credible interval
     polygon(
@@ -389,21 +399,30 @@ plotmod <- function(StanFit, dataList, model = 3, file = NULL){
     points(dataList$time,dataList$observed)
 
 
-    if(!is.null(file)){
+    if(i == 2){
       dev.off()
     }
   }
 
 
   # Plot posterior predictive
-  for(i in 1:length(1+!is.null(file))){
-    if(!is.null(file)){
-      png(filename = paste0(file, "posterior_predictive.png"), height = 4, width = 6, units = "in")
+  for(i in 1:(1+!is.null(file))){
+    if(i == 2){
+      png(filename = paste0(file, "posterior_predictive.png"), height = 5, width = 6, units = "in", res = 300)
     }
 
     # Main plot
     plot(dataList$time,rep(NA, length(dataList$time)), type="l",xlab="Time", ylab="Nitrogen  (mg/L)",
-         ylim=c(min(predictive_summary[7, ]), max(predictive_summary[8, ])),cex.lab=1.5, cex.axis=1.5, lwd=3, col="black", main = "Posterior Predictive Check")
+         ylim=c(min(predictive_summary[7, ]), max(predictive_summary[8, ])), lwd=3, col="black", main = "Posterior Predictive Check", xaxt = "n", las = 1)
+
+    # Axis
+    x_pos <- c(1:length(dataList1$time))[c(FALSE, TRUE, FALSE, FALSE)]
+    x_axt <- hours(dataList1$time[c(FALSE, TRUE, FALSE, FALSE)])
+    x_axt <- ifelse(x_axt == 0, 24, x_axt)
+    xlab <- ifelse(x_axt < 12, paste0(x_axt, "am"), paste0(x_axt - 12, "pm"))
+    xlab <- ifelse(xlab == "12pm", "12am", xlab)
+    xlab <- ifelse(xlab == "0pm", "12pm", xlab)
+    axis(1,at=x_pos, labels=xlab,las=1)
 
     # Credible interval
     polygon(
@@ -420,7 +439,7 @@ plotmod <- function(StanFit, dataList, model = 3, file = NULL){
     # Observed
     points(dataList$time, dataList$observed)
 
-    if(!is.null(file)){
+    if(i == 2){
       dev.off()
     }
   }
