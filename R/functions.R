@@ -151,9 +151,9 @@ create_dataList <- function(data, model = 1, Kmean = 4.03, Ksd = 4.0, up = "up1"
     data_list$time <- data$dtime
 
     # Light
-    data_list$PPFD <- data$light # Photosynthetic photon flux density (PPFD/light) (mol m-2 s-1)
+    data_list$PPFD <- data$light # Photosynthetic photon flux density (PPFD/light)
 
-    # Calculate daily total of PPFD (mol m-2 s-1 d-1)
+    # Calculate daily total of PPFD
     PPFDstart <- which(chron::hours(data$dtime) >= PPFDstart)[1] # Get the first observation to begin calculating daily total of PPFD
     end_ppfd <- which(data$dtime < (data$dtime[PPFDstart] + 1)) # Get all observations within 24 hours of start
     end_ppfd <- end_ppfd[length(end_ppfd)] # Whats the last observation
@@ -207,10 +207,10 @@ create_dataList <- function(data, model = 1, Kmean = 4.03, Ksd = 4.0, up = "up1"
     data_obj[,6] <- downdata$n2convert[down_sub]
 
     # Light
-    data_list$PPFD <- downdata$light # Photosynthetic photon flux density (PPFD/light) (mol m-2 s-1)
+    data_list$PPFD <- downdata$light # Photosynthetic photon flux density (PPFD/light)
 
 
-    # Calculate daily total of PPFD (mol m-2 s-1 d-1)
+    # Calculate daily total of PPFD
     PPFDstart <- which(chron::hours(downdata$dtime) >= PPFDstart)[1] # Get the first observation to begin calculating daily total of PPFD
     end_ppfd <- which(downdata$dtime < (downdata$dtime[PPFDstart] + 1)) # Get all observations within 24 hours of start
     end_ppfd <- end_ppfd[length(end_ppfd)] # Whats the last observation
