@@ -506,12 +506,14 @@ extract_values <- function(StanFit = mod3, dataList = dataList2, model = 3, file
                  "5%CI", "95%CI","2.5%PI", "97.5%PI",
                  "5%PI", "95%PI")
 
+  row_names <- as.character(sapply(row_names, function(x) ifelse(model > 2, paste0("EstN2Down_",x),  paste0("EstN2_",x))))
+
   posterior_summary <- matrix(nrow = length(row_names), ncol = dim(n2hat)[2])
   posterior_summary[1, ] <- colMeans(n2hat)
   posterior_summary[2:6, ] <- apply(n2hat, 2, quantile, probs= c(0.5, 0.025, 0.975, 0.25, 0.75))
   posterior_summary[7:10, ] <- apply(n2pred, 2, quantile, probs= c(0.025, 0.975, 0.25, 0.75))
   posterior_summary <-as.data.frame(posterior_summary)
-  row.names(posterior_summary) <-  paste0("EstN2_",row_names)
+  row.names(posterior_summary) <-  row_names
   posterior_summary <- t(posterior_summary)
 
   # Combine results with data
