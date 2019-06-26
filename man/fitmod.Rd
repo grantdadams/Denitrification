@@ -4,7 +4,7 @@
 \alias{fitmod}
 \title{Estimate model}
 \usage{
-fitmod(dataList, model = 3, nChains = 2, niter = 3000,
+fitmod(dataList, model = 3, nChains = 2, niter = 5000,
   burnin = 1000, verbose = FALSE)
 }
 \arguments{
@@ -24,7 +24,7 @@ fitmod(dataList, model = 3, nChains = 2, niter = 3000,
 fits a stan model and returns a stan model object
 }
 \details{
-Model determines which model to estimate. 1 is the single station model without N consumption (DN base model), 2 is the single station model with N consumption (DN + Nconsume), the  3 being the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
+Model determines which model to estimate. 1 is the single station model without N consumption (DN base), 2 is the single station model with N consumption (DN + Nconsume), the  3 is the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
 }
 \examples{
 

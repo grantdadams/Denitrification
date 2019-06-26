@@ -105,12 +105,13 @@ arsatfc<-function(temp, salinity, bp){
 #' @param down Name indicating the down-river station name
 #' @param tt Time between stations
 #' @param depth Depth (m)
+#' @param PPFDstart Start time (hours) for calculating daily total of photosynthetic photon flux density (PPFD). Calculated by summing across column light for the next 24 hours from the first PPFDstart time.
 #'
-#' @details Model determines which model to estimate. 1 is the single station model without N consumption (DN base model), 2 is the single station model with N consumption (DN + Nconsume), the  3 being the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
+#' @details Model determines which model to estimate. 1 is the single station model without N consumption (DN base), 2 is the single station model with N consumption (DN + Nconsume), the  3 is the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
 #'
 #' @export
 #'
-create_dataList <- function(data, model = 1, Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, depth = 0.5588){
+create_dataList <- function(data, model = 1, Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, depth = 0.5588, PPFDstart = 14){
 
   # Convert data
   data$arsat <- arsatfc(temp=data$temp, salinity=0, bp=data$bp)
@@ -123,13 +124,6 @@ create_dataList <- function(data, model = 1, Kmean = 4.03, Ksd = 4.0, up = "up1"
   # Create list of data objects
   data_list <- list()
 
-  ############################################
-  # 1 Station models
-  if(model <= 2){
-
-
-    data_list$lag = 0
-  }
 
   ############################################
   # 1 Station models
@@ -146,9 +140,6 @@ create_dataList <- function(data, model = 1, Kmean = 4.03, Ksd = 4.0, up = "up1"
     data_obj[,3] <- data$n2convert     # N2
     data_obj[,4] <- c(-999, data$dtime[2:length(data$dtime)] - data$dtime[1:(length(data$dtime) - 1)])    # delta t
 
-    # Light
-    data$light<-data$light
-
     # Parameters
     data_list$Kmean = Kmean
     data_list$Ksd = Ksd
@@ -160,7 +151,19 @@ create_dataList <- function(data, model = 1, Kmean = 4.03, Ksd = 4.0, up = "up1"
     data_list$time <- data$dtime
 
     # Light
-    data_list$light<-data$light
+    data_list$PPFD <- data$light # Photosynthetic photon flux density (PPFD/light) (mol m-2 s-1)
+
+    # Calculate daily total of PPFD (mol m-2 s-1 d-1)
+    PPFDstart <- which(hours(data$dtime) >= PPFDstart)[1] # Get the first observation to begin calculating daily total of PPFD
+    end_ppfd <- which(data$dtime < (data$dtime[PPFDstart] + 1)) # Get all observations within 24 hours of start
+    end_ppfd <- end_ppfd[length(end_ppfd)] # Whats the last observation
+
+    if(length(PPFDstart:end_ppfd)){
+      warning("There are not 23 PPFD observations after PPFDstart. PPFDtotal will be incorrect: please change PPFDstart")
+    }
+
+    data_list$PPFDtotal <- sum(data$light[PPFDstart:end_ppfd])
+
 
     # Data size
     data_list$data_obj <- data_obj
@@ -172,6 +175,7 @@ create_dataList <- function(data, model = 1, Kmean = 4.03, Ksd = 4.0, up = "up1"
   ############################################
   # 2 Station models
   if(model > 2){
+
     # Subset data
     updata <- data[data$station == up,]
     downdata <- data[data$station == down,]
@@ -203,7 +207,15 @@ create_dataList <- function(data, model = 1, Kmean = 4.03, Ksd = 4.0, up = "up1"
     data_obj[,6] <- downdata$n2convert[down_sub]
 
     # Light
-    data_list$light<-downdata$light
+    data_list$PPFD <- downdata$light # Photosynthetic photon flux density (PPFD/light) (mol m-2 s-1)
+
+
+    # Calculate daily total of PPFD (mol m-2 s-1 d-1)
+    PPFDstart <- which(hours(downdata$dtime) >= PPFDstart)[1] # Get the first observation to begin calculating daily total of PPFD
+    end_ppfd <- which(downdata$dtime < (downdata$dtime[PPFDstart] + 1)) # Get all observations within 24 hours of start
+    end_ppfd <- end_ppfd[length(end_ppfd)] # Whats the last observation
+
+    data_list$PPFDtotal <- sum(downdata$light[PPFDstart:end_ppfd])
 
     # Parameters
     data_list$Kmean = Kmean
@@ -237,7 +249,7 @@ create_dataList <- function(data, model = 1, Kmean = 4.03, Ksd = 4.0, up = "up1"
 #' @param burnin A positive integer specifying the number of warmup (aka burnin) iterations per chain.
 #' @param verbose TRUE or FALSE: flag indicating whether to print intermediate output from Stan on the console, which might be helpful for model debugging.
 #'
-#' @details Model determines which model to estimate. 1 is the single station model without N consumption (DN base model), 2 is the single station model with N consumption (DN + Nconsume), the  3 being the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
+#' @details Model determines which model to estimate. 1 is the single station model without N consumption (DN base), 2 is the single station model with N consumption (DN + Nconsume), the  3 is the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
 #'
 #' @export
 #'
@@ -255,7 +267,7 @@ create_dataList <- function(data, model = 1, Kmean = 4.03, Ksd = 4.0, up = "up1"
 #' mod2 <- fitmod(dataList, model = 4, verbose = FALSE)
 #' plotmod(StanFit = mod2, dataList = dataList, model = 4)
 #'
-fitmod <- function(dataList, model = 3, nChains = 2, niter = 3000, burnin = 1000, verbose = FALSE){
+fitmod <- function(dataList, model = 3, nChains = 2, niter = 5000, burnin = 1000, verbose = FALSE){
 
   # Model set up
   dataList$mod = model
@@ -350,21 +362,6 @@ plotmod <- function(StanFit, dataList, model = 3, file = NULL){
   ##########################################
   # Plots
 
-  # # Plot mean
-  # for(i in 1:length(1+!is.null(file))){
-  #   if(!is.null(file)){
-  #     png(filename = paste0(file, ".png"), height = 4, width = 6, units = "in", res = 300)
-  #   }
-  #
-  #   plot(dataList$time,colMeans(n2hat), type="l",xlab="Time", ylab="Nitrogen  (mg/L)", ylim=c(11,15),cex.lab=1.5, cex.axis=1.5, lwd=3, col="black" )
-  #   points(dataList$time,dataList$observed)
-  #
-  #   if(!is.null(file)){
-  #     dev.off()
-  #   }
-  # }
-
-
   # Plot mean with CI
   for(i in 1:(1+!is.null(file))){
 
@@ -436,7 +433,7 @@ plotmod <- function(StanFit, dataList, model = 3, file = NULL){
              col = "grey60", border = NA) # 90% CI
 
     # Median
-    lines( x = dataList$time, y = predictive_summary[2, ], lty = 1, lwd = 3, col = 1) # Median
+    lines( x = dataList$time, y = predictive_summary[2, ], lty = 1, lwd = 3, col = 1)
 
     # Observed
     points(dataList$time, dataList$observed)

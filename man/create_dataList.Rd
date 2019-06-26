@@ -5,7 +5,8 @@
 \title{Data list}
 \usage{
 create_dataList(data, model = 1, Kmean = 4.03, Ksd = 4, up = "up1",
-  down = "down1", tt = 0.1909720833, depth = 0.5588)
+  down = "down1", tt = 0.1909720833, depth = 0.5588,
+  PPFDstart = 14)
 }
 \arguments{
 \item{data}{data.frame object with columnds for station, temperature, n2.ar, light, bp, z, and dtime, arsat, and n2sat}
@@ -23,10 +24,12 @@ create_dataList(data, model = 1, Kmean = 4.03, Ksd = 4, up = "up1",
 \item{tt}{Time between stations}
 
 \item{depth}{Depth (m)}
+
+\item{PPFDstart}{Start time (hours) for calculating daily total of photosynthetic photon flux density (PPFD). Calculated by summing across column light for the next 24 hours from the first PPFDstart time.}
 }
 \description{
 Creates a list of data objects to be used by stan
 }
 \details{
-Model determines which model to estimate. 1 is the single station model without N consumption (DN base model), 2 is the single station model with N consumption (DN + Nconsume), the  3 being the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
+Model determines which model to estimate. 1 is the single station model without N consumption (DN base), 2 is the single station model with N consumption (DN + Nconsume), the  3 is the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
 }

@@ -35,7 +35,8 @@ data {
   real tt; // Travel time between stations
   int<lower = 0> lag; // Time lag (if mod < 3 it is 0)
 
-  real light[nobs + lag];
+  real PPFD[nobs + lag]; // Photosynthetic photon flux density (PPFD/light) (mol m-2 s-1)
+  real PPFDtotal; // Daily total of PPFD (mol m-2 s-1 d-1)
 
   // Prior specifications
   real Kmean;
@@ -78,7 +79,7 @@ model {
 
       // Add N consumption (DN + Nconsume) for model 2
       if(mod == 2){
-         n2hat[i] += params[3] / z * light[i] / sum(light);
+         n2hat[i] += params[3] / z * PPFD[i] / PPFDtotal;
       }
 
       n2hat[i] /=  (1 + Kcor(data_obj[i, 1], params[2]) * data_obj[i, 4] / 2);
@@ -98,7 +99,7 @@ model {
 
       // Add N consumption (DN + Nconsume) for model 4
       if(mod == 4){
-         n2hat[i] += params[3] / z * sum(light[i:(i+lag)]) / sum(light);
+         n2hat[i] += params[3] / z * sum(PPFD[i:(i+lag)]) / PPFDtotal;
       }
 
       n2hat[i] /=  (1 + Kcor(data_obj[i, 1], params[2]) * tt / 2);
@@ -126,7 +127,7 @@ generated quantities{
 
       // Add N consumption (DN + Nconsume) for model 2
       if(mod == 2){
-         n2hat[i] += params[3] / z * light[i] / sum(light);
+         n2hat[i] += params[3] / z * PPFD[i] / PPFDtotal;
       }
 
       n2hat[i] /=  (1 + Kcor(data_obj[i, 1], params[2]) * data_obj[i, 4] / 2);
@@ -149,7 +150,7 @@ generated quantities{
 
       // Add N consumption (DN + Nconsume) for model 4
       if(mod == 4){
-         n2hat[i] += params[3] / z * sum(light[i:(i+lag)]) / sum(light);
+         n2hat[i] += params[3] / z * sum(PPFD[i:(i+lag)]) / PPFDtotal;
       }
 
       n2hat[i] /=  (1 + Kcor(data_obj[i, 1], params[2]) * tt / 2);
