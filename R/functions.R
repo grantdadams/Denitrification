@@ -107,7 +107,7 @@ arsatfc<-function(temp, salinity, bp){
 #' @param depth Depth (m)
 #' @param PPFDstart Start time (hours) for calculating daily total of photosynthetic photon flux density (PPFD). Calculated by summing across column light for the next 24 hours from the first PPFDstart time.
 #'
-#' @details Model determines which model to estimate. 1 is the single station model without N consumption (DN base), 2 is the single station model with N consumption (DN + Nconsume), the  3 is the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
+#' @details Model determines which model to estimate. 1 is the single station model without N consumption (DN base model; Eq. 3 from Nifong et al.), 2 is the single station model with N consumption (DN + Nconsume; Eq. 4 from Nifong et al.), the  3 being the two-station model without N consumption (DN base; Eq. 5 from Nifong et al.), and 4 being the two station model with N consumption (DN N consume; Eq. 6 from Nifong et al.).
 #'
 #' @export
 #'
@@ -154,11 +154,11 @@ create_dataList <- function(data, model = 1, Kmean = 4.03, Ksd = 4.0, up = "up1"
     data_list$PPFD <- data$light # Photosynthetic photon flux density (PPFD/light) (mol m-2 s-1)
 
     # Calculate daily total of PPFD (mol m-2 s-1 d-1)
-    PPFDstart <- which(hours(data$dtime) >= PPFDstart)[1] # Get the first observation to begin calculating daily total of PPFD
+    PPFDstart <- which(chron::hours(data$dtime) >= PPFDstart)[1] # Get the first observation to begin calculating daily total of PPFD
     end_ppfd <- which(data$dtime < (data$dtime[PPFDstart] + 1)) # Get all observations within 24 hours of start
     end_ppfd <- end_ppfd[length(end_ppfd)] # Whats the last observation
 
-    if(length(PPFDstart:end_ppfd)){
+    if(length(PPFDstart:end_ppfd) != 24){
       warning("There are not 23 PPFD observations after PPFDstart. PPFDtotal will be incorrect: please change PPFDstart")
     }
 
@@ -211,9 +211,14 @@ create_dataList <- function(data, model = 1, Kmean = 4.03, Ksd = 4.0, up = "up1"
 
 
     # Calculate daily total of PPFD (mol m-2 s-1 d-1)
-    PPFDstart <- which(hours(downdata$dtime) >= PPFDstart)[1] # Get the first observation to begin calculating daily total of PPFD
+    PPFDstart <- which(chron::hours(downdata$dtime) >= PPFDstart)[1] # Get the first observation to begin calculating daily total of PPFD
     end_ppfd <- which(downdata$dtime < (downdata$dtime[PPFDstart] + 1)) # Get all observations within 24 hours of start
     end_ppfd <- end_ppfd[length(end_ppfd)] # Whats the last observation
+
+    if(length(PPFDstart:end_ppfd) != 24){
+      warning("There are not 23 PPFD observations after PPFDstart. PPFDtotal will be incorrect: please change PPFDstart")
+    }
+
 
     data_list$PPFDtotal <- sum(downdata$light[PPFDstart:end_ppfd])
 
@@ -249,24 +254,23 @@ create_dataList <- function(data, model = 1, Kmean = 4.03, Ksd = 4.0, up = "up1"
 #' @param burnin A positive integer specifying the number of warmup (aka burnin) iterations per chain.
 #' @param verbose TRUE or FALSE: flag indicating whether to print intermediate output from Stan on the console, which might be helpful for model debugging.
 #'
-#' @details Model determines which model to estimate. 1 is the single station model without N consumption (DN base), 2 is the single station model with N consumption (DN + Nconsume), the  3 is the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
-#'
-#' @export
+#' @details Model determines which model to estimate. 1 is the single station model without N consumption (DN base model; Eq. 3 from Nifong et al.), 2 is the single station model with N consumption (DN + Nconsume; Eq. 4 from Nifong et al.), the  3 being the two-station model without N consumption (DN base; Eq. 5 from Nifong et al.), and 4 being the two station model with N consumption (DN N consume; Eq. 6 from Nifong et al.).
 #'
 #' @examples
 #'
-#' # Run model Eq. 6
+#' # Run model Eq. 5
 #' data(InitialData)
 #' dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, depth = 0.5588)
 #' mod <- fitmod(dataList, model = 3)
 #' plotmod(mod, dataList = dataList, model = 3, file = NULL)
 #'
-#' # Run model Eq. 7
+#' # Run model Eq. 6
 #' data(InitialData)
 #' dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.19097290833, depth = 0.5588)
 #' mod2 <- fitmod(dataList, model = 4, verbose = FALSE)
 #' plotmod(StanFit = mod2, dataList = dataList, model = 4)
 #'
+#'@export
 fitmod <- function(dataList, model = 3, nChains = 2, niter = 5000, burnin = 1000, verbose = FALSE){
 
   # Model set up
@@ -302,10 +306,22 @@ fitmod <- function(dataList, model = 3, nChains = 2, niter = 5000, burnin = 1000
 #' @param model Model number for fitting algorithm.
 #' @param file filname to save the parameter estimates. Will not save if NULL.
 #'
-#' @details Model determines which model to estimate. 1 is the single station model without N consumption (DN base model), 2 is the single station model with N consumption (DN + Nconsume), the  3 being the two-station model without N consumption (DN base), and 4 being the two station model with N consumption (DN N consume).
-#' @export
+#' @details Model determines which model to estimate. 1 is the single station model without N consumption (DN base model; Eq. 3 from Nifong et al.), 2 is the single station model with N consumption (DN + Nconsume; Eq. 4 from Nifong et al.), the  3 being the two-station model without N consumption (DN base; Eq. 5 from Nifong et al.), and 4 being the two station model with N consumption (DN N consume; Eq. 6 from Nifong et al.).
 #'
 #' @examples
+#' # Run model Eq. 5 from Nifong et al.
+#' data(InitialData)
+#' dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, depth = 0.5588)
+#' mod <- fitmod(dataList, model = 3)
+#' plotmod(mod, dataList = dataList, model = 3, file = NULL)
+#'
+#' # Run model Eq. 6 from Nifong et al.
+#' data(InitialData)
+#' dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.19097290833, depth = 0.5588)
+#' mod2 <- fitmod(dataList, model = 4, verbose = FALSE)
+#' plotmod(StanFit = mod2, dataList = dataList, model = 4)
+#'
+#' @export
 plotmod <- function(StanFit, dataList, model = 3, file = NULL){
 
   ##########################################
@@ -443,6 +459,75 @@ plotmod <- function(StanFit, dataList, model = 3, file = NULL){
     }
   }
 
+
+  return(results)
+}
+
+#' Extract observed and estimated values
+#'
+#' @description Extracts the observed and estimated N2 values from a stan model fit.
+#'
+#' @param StanFit Standmodel output by \code{fitmod}
+#' @param dataList dataList created by \code{create_dataList}
+#' @param model Model number for fitting algorithm.
+#' @param file filname to save the estimates. Will not save if NULL.
+#'
+#' @return a dataframe include the Temperature, equilibrium concentration of N2, observed N2, dT and estimated mean, median, 95% and 90% confidence interval (CI) and prediction interval (PI).
+#'
+#' @details Model determines which model to estimate. 1 is the single station model without N consumption (DN base model; Eq. 3 from Nifong et al.), 2 is the single station model with N consumption (DN + Nconsume; Eq. 4 from Nifong et al.), the  3 being the two-station model without N consumption (DN base; Eq. 5 from Nifong et al.), and 4 being the two station model with N consumption (DN N consume; Eq. 6 from Nifong et al.).
+#'
+#' @examples
+#' # Run model Eq. 5 from Nifong et al.
+#' data(InitialData)
+#' dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, depth = 0.5588)
+#' mod <- fitmod(dataList, model = 3)
+#' plotmod(mod, dataList = dataList, model = 3, file = NULL)
+#' extract_values(mod, dataList = dataList, model = 3, file = NULL)
+#'
+#' # Run model Eq. 6 from Nifong et al.
+#' data(InitialData)
+#' dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.19097290833, depth = 0.5588)
+#' mod2 <- fitmod(dataList, model = 4, verbose = FALSE)
+#' plotmod(StanFit = mod2, dataList = dataList, model = 4)
+#' extract_values(mod, dataList = dataList, model = 3, file = NULL)
+#'
+#' @export
+extract_values <- function(StanFit = mod3, dataList = dataList2, model = 3, file = NULL){
+
+  # Get list of returned objects
+  returned_objects <- extract(StanFit)
+  n2hat <- returned_objects$n2hat # Predicted mean
+  n2pred <- returned_objects$n2pred # Posterior predictive
+
+  ##########################################
+  # Summarize posterior and posterior predictive
+  row_names <- c("mean", "median",
+                 "2.5%CI", "97.5%CI",
+                 "5%CI", "95%CI","2.5%PI", "97.5%PI",
+                 "5%PI", "95%PI")
+
+  posterior_summary <- matrix(nrow = length(row_names), ncol = dim(n2hat)[2])
+  posterior_summary[1, ] <- colMeans(n2hat)
+  posterior_summary[2:6, ] <- apply(n2hat, 2, quantile, probs= c(0.5, 0.025, 0.975, 0.25, 0.75))
+  posterior_summary[7:10, ] <- apply(n2pred, 2, quantile, probs= c(0.025, 0.975, 0.25, 0.75))
+  posterior_summary <-as.data.frame(posterior_summary)
+  row.names(posterior_summary) <-  paste0("EstN2_",row_names)
+  posterior_summary <- t(posterior_summary)
+
+  # Combine results with data
+  if(model <= 2){
+    data_names <- c("Temp", "N2Equil", "N2", "dT")
+  }
+  if(model > 2){
+    data_names <- c("TempUp", "TempDown", "N2EquilUp", "N2EquilDown", "N2Up", "N2Down")
+  }
+data <- data.frame(dataList$data_obj)
+colnames(data) <- data_names
+  results <- cbind(data, posterior_summary)
+
+  if(!is.null(file)){
+    write.csv(results, file = paste0(file, "results.csv"))
+  }
 
   return(results)
 }

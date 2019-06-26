@@ -2,6 +2,7 @@
 
 export(arsatfc)
 export(create_dataList)
+export(extract_values)
 export(fitmod)
 export(n2satfc)
 export(plotmod)
