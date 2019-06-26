@@ -98,7 +98,7 @@ arsatfc<-function(temp, salinity, bp){
 #' @description Creates a list of data objects to be used by stan
 #'
 #' @param data data.frame object with columnds for station, temperature, n2.ar, light, bp, z, and dtime, arsat, and n2sat
-#' @param model Model number for fitting algorithm.
+#' @param model Model number for fitting algorithm (see details bleow).
 #' @param Kmean Mean of normal prior distribution for K600
 #' @param Ksd Sd of normal prior distribution for K600
 #' @param up Name indicating the up-river station name
@@ -248,7 +248,7 @@ create_dataList <- function(data, model = 1, Kmean = 4.03, Ksd = 4.0, up = "up1"
 #' @description fits a stan model and returns a stan model object
 #'
 #' @param dataList dataList created by \code{create_dataList}
-#' @param model Model number for fitting algorithm.
+#' @param model Model number for fitting algorithm (see details bleow).
 #' @param nChains Number of chains to run
 #' @param niter Number of iterations to run for each chain (including burnin)
 #' @param burnin A positive integer specifying the number of warmup (aka burnin) iterations per chain.
@@ -303,7 +303,7 @@ fitmod <- function(dataList, model = 3, nChains = 2, niter = 5000, burnin = 1000
 #'
 #' @param StanFit Standmodel output by \code{fitmod}
 #' @param dataList dataList created by \code{create_dataList}
-#' @param model Model number for fitting algorithm.
+#' @param model Model number for fitting algorithm (see details bleow).
 #' @param file filname to save the parameter estimates. Will not save if NULL.
 #'
 #' @details Model determines which model to estimate. 1 is the single station model without N consumption (DN base model; Eq. 3 from Nifong et al.), 2 is the single station model with N consumption (DN + Nconsume; Eq. 4 from Nifong et al.), the  3 being the two-station model without N consumption (DN base; Eq. 5 from Nifong et al.), and 4 being the two station model with N consumption (DN N consume; Eq. 6 from Nifong et al.).
@@ -469,7 +469,7 @@ plotmod <- function(StanFit, dataList, model = 3, file = NULL){
 #'
 #' @param StanFit Standmodel output by \code{fitmod}
 #' @param dataList dataList created by \code{create_dataList}
-#' @param model Model number for fitting algorithm.
+#' @param model Model number for fitting algorithm (see details bleow).
 #' @param file filname to save the estimates. Will not save if NULL.
 #'
 #' @return a dataframe include the Temperature, equilibrium concentration of N2, observed N2, dT and estimated mean, median, 95% and 90% confidence interval (CI) and prediction interval (PI).
@@ -523,8 +523,8 @@ extract_values <- function(StanFit = mod3, dataList = dataList2, model = 3, file
   if(model > 2){
     data_names <- c("TempUp", "TempDown", "N2EquilUp", "N2EquilDown", "N2Up", "N2Down")
   }
-data <- data.frame(dataList$data_obj)
-colnames(data) <- data_names
+  data <- data.frame(dataList$data_obj)
+  colnames(data) <- data_names
   results <- cbind(data, posterior_summary)
 
   if(!is.null(file)){
@@ -533,4 +533,74 @@ colnames(data) <- data_names
 
   return(results)
 }
-
+#'
+#'
+#' #' Plot multiple models
+#' #'
+#' #' @param StanFits a list of Standmodel output by \code{fitmod}
+#' #' @param dataList dataList created by \code{create_dataList}
+#' #' @param models a vector of model numbers for fitting algorithm (see details bleow).
+#' #' @param file filname to save the parameter estimates. Will not save if NULL.
+#' #'
+#' #' @details Model determines which model to estimate. 1 is the single station model without N consumption (DN base model; Eq. 3 from Nifong et al.), 2 is the single station model with N consumption (DN + Nconsume; Eq. 4 from Nifong et al.), the  3 being the two-station model without N consumption (DN base; Eq. 5 from Nifong et al.), and 4 being the two station model with N consumption (DN N consume; Eq. 6 from Nifong et al.).
+#' #'
+#' #' @examples
+#' #' # Run model Eq. 5 from Nifong et al.
+#' #' data(InitialData)
+#' #' dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.1909720833, depth = 0.5588)
+#' #' mod <- fitmod(dataList, model = 3)
+#' #' plotmod(mod, dataList = dataList, model = 3, file = NULL)
+#' #'
+#' #' # Run model Eq. 6 from Nifong et al.
+#' #' data(InitialData)
+#' #' dataList <- create_dataList(InitialData , Kmean = 4.03, Ksd = 4.0, up = "up1", down = "down1", tt = 0.19097290833, depth = 0.5588)
+#' #' mod2 <- fitmod(dataList, model = 4, verbose = FALSE)
+#' #' plotmod(StanFit = mod2, dataList = dataList, model = 4)
+#' #'
+#' #' @export
+#' stacked_plot <- function(StanFits = list(mod1, mod2, mod3), dataList = dataList2, models = c(1,2,3), file = NULL ){
+#'
+#'
+#'
+#'   for(i in 1:(1+!is.null(file))){
+#'     if(i == 2){
+#'       tiff(filename = paste0(file, "stacked_plot.tiff"), width = 3.30, height = 6, units = 'in', res = 800)
+#'     }
+#'
+#'
+#'     tiff("D2ZeroDN_Nfixmodfigure.tiff", width = 3.30, height = 6, units = 'in', res = 800)
+#'     par(mfrow=c(4,1), oma=c(5.5,4,1,1), mar=c(1,2,0.1,1))
+#'     plot(seq(1:length(n2down)),nitro_noDNnoNfix,type="l",lty=1,lwd=2,col="black",ylim=c(10,14),xaxt="n",cex.axis=1.3,xlab="",ylab="")
+#'     par(new=TRUE)
+#'     points(seq(1:length(n2down)),n2down, cex=1.25)
+#'     par(new=TRUE)
+#'     lines(seq(1:length(n2satdown)),n2satdown, lty=2, lwd=2, col="gray40")
+#'     mtext("(a)", side=2, las=2, line=2.25, at=14,cex=1)
+#'     plot(seq(1:length(n2down)),nitro.with.no.Nfix,type="l",lty=1,lwd=2,col="black",ylim=c(10,14),xaxt="n",cex.axis=1.3,xlab="",ylab="")
+#'     par(new=TRUE)
+#'     points(seq(1:length(n2down)),n2down, cex=1.25)
+#'     par(new=TRUE)
+#'     lines(seq(1:length(n2satdown)),n2satdown, lty=2, lwd=2, col="gray40")
+#'     mtext("(b)", side=2, las=2, line=2.25, at=14,cex=1)
+#'     mtext(expression(paste("N"[2] *"-N ", ( "mg"*" L"^-1), sep="")),side =2, line=2, outer=TRUE, cex=1)
+#'     plot(seq(1:length(n2down)),nitrowithNfix_noDN,type="l",lty=1,lwd=2,col="black",ylim=c(10,14),xaxt="n",cex.axis=1.3,xlab="",ylab="")
+#'     par(new=TRUE)
+#'     points(seq(1:length(n2down)),n2down,cex=1.25)
+#'     par(new=TRUE)
+#'     lines(seq(1:length(n2satdown)),n2satdown, lty=2, lwd=2, col="gray40")
+#'     mtext("(c)", side=2, las=2, line=2.25, at=14,cex=1)
+#'     plot(seq(1:length(n2down)),DN.Nconsum,type="l",lty=1,lwd=2,col="black",ylim=c(10,14),xaxt="n",cex.axis=1.3,xlab="",ylab="")
+#'     par(new=TRUE)
+#'     points(seq(1:length(n2down)),n2down,cex=1.25)
+#'     par(new=TRUE)
+#'     lines(seq(1:length(n2satdown)),n2satdown, lty=2, lwd=2, col="gray40")
+#'     mtext("(d)", side=2, las=2, line=2.25, at=14,cex=1)
+#'     axis(1,at=c(3,7,11,15,19,23), labels=c("4pm","8pm","12am","4am","8am","12pm"),las=2,cex.axis=1.3)
+#'     mtext(expression(paste("Time")),side =1, line=4, outer=TRUE, cex=1)
+#'
+#'
+#'     if(i == 2){
+#'       dev.off()
+#'     }
+#'   }
+#' }
