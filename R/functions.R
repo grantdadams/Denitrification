@@ -271,17 +271,18 @@ create_dataList <- function(data, model = 1, Kmean = 4.03, Ksd = 4.0, up = "up1"
 #' plotmod(StanFit = mod2, dataList = dataList, model = 4)
 #'
 #'@export
-fitmod <- function(dataList, model = 3, nChains = 2, niter = 5000, burnin = 1000, verbose = FALSE){
+fitmod <- function(dataList, model = 3, nChains = 2, niter = 5000, burnin = 1000, verbose = FALSE, incl_DN = FALSE){
 
   # Model set up
   dataList$mod = model
   if(model %in% c(1,3)){
-    dataList$nparam = 2
-    params_names <- c("DN", "K600", "sigma2", "logPost")
+    dataList$nparam = 1
   }
   if(model %in% c(2,4)){
-    dataList$nparam = 3
-    params_names <- c("DN", "K600", "Nfix", "sigma2", "logPost")
+    dataList$nparam = 2
+  }
+  if(incl_DN){
+    dataList$nparam <- dataList$nparam + 1
   }
 
   # Get model
@@ -322,7 +323,7 @@ fitmod <- function(dataList, model = 3, nChains = 2, niter = 5000, burnin = 1000
 #' plotmod(StanFit = mod2, dataList = dataList, model = 4)
 #'
 #' @export
-plotmod <- function(StanFit, dataList, model = 3, file = NULL){
+plotmod <- function(StanFit, dataList, model = 3, file = NULL, incl_DN = FALSE){
 
   ##########################################
   # Results of parameters to return
@@ -332,10 +333,14 @@ plotmod <- function(StanFit, dataList, model = 3, file = NULL){
 
 
   if(model %in% c(1,3)){
-    params_names <- c("DN", "K600", "sigma2", "logPost")
+    params_names <- c("K600", "sigma2", "logPost")
   }
   if(model %in% c(2,4)){
-    params_names <- c("DN", "K600", "Nfix", "sigma2", "logPost")
+    params_names <- c("K600", "Nfix", "sigma2", "logPost")
+  }
+
+  if(incl_DN){
+    params_names <- c(params_names[1], "DN", params_names[2:length(params_names)])
   }
 
   rownames(results) <- params_names

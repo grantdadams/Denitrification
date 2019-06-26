@@ -11,6 +11,7 @@ data {
   int<lower = 1> nobs;
   int<lower = 1> ncol;
   int<lower = 1> nparam;
+  int incl_DN;
 
   // Data
   real data_obj[nobs, ncol];
@@ -43,8 +44,8 @@ data {
   real Ksd;
 }
 parameters {
-  // params[1] = DN = Denitrification rate (g m-2 d-1)
-  // params[2] = K600 = Gas exchange rates (d-1)
+  // params[1] = K600 = Gas exchange rates (d-1)
+  // params[2] = DN = Denitrification rate (g m-2 d-1)
   // params[3] = Nfix = N2 fixation rate (g m-2 d-1)
   real params[nparam];
 
@@ -55,16 +56,20 @@ model {
   vector[nobs] n2hat;
 
   // Priors
-  params[1] ~ normal(1, 5);
-  params[2] ~ normal(Kmean, Ksd);
+  params[1] ~ normal(Kmean, Ksd);
   sigma ~ normal(0,10);
+
+  // Remove DN
+  if(incl_DN == 1){
+    params[2] ~ normal(1, 5);
+  }
 
   // Additional prior for model 2 and 4
   if(mod == 2){
-    params[3] ~ normal(-1, 5);
+    params[2+incl_DN] ~ normal(-1, 5);
   }
   if(mod == 4){
-    params[3] ~ normal(-1, 5);
+    params[2+incl_DN] ~ normal(-1, 5);
   }
 
   // -- One-station models (Models 1 and 1)
@@ -74,15 +79,21 @@ model {
 
     // Model loop
     for(i in 2:nobs){
-      n2hat[i] = n2hat[i - 1] + params[1] * data_obj[i, 4] / z ;
-      n2hat[i] +=  Kcor(data_obj[i, 1], params[2]) * data_obj[i, 4] * (data_obj[i, 2] + data_obj[i - 1, 2] - n2hat[i - 1])/2;
+      n2hat[i] = n2hat[i - 1];
+
+      // Remove DN
+      if(incl_DN == 1){
+        n2hat[i] += params[2] * data_obj[i, 4] / z ;
+      }
+
+      n2hat[i] +=  Kcor(data_obj[i, 1], params[1]) * data_obj[i, 4] * (data_obj[i, 2] + data_obj[i - 1, 2] - n2hat[i - 1])/2;
 
       // Add N consumption (DN + Nconsume) for model 2
       if(mod == 2){
-         n2hat[i] += params[3] / z * PPFD[i] / PPFDtotal;
+         n2hat[i] += params[2+incl_DN] / z * PPFD[i] / PPFDtotal;
       }
 
-      n2hat[i] /=  (1 + Kcor(data_obj[i, 1], params[2]) * data_obj[i, 4] / 2);
+      n2hat[i] /=  (1 + Kcor(data_obj[i, 1], params[1]) * data_obj[i, 4] / 2);
     }
 
     // Likelihood
@@ -94,15 +105,21 @@ model {
   if(mod > 2){
     // Model loop
     for(i in 1:nobs){
-      n2hat[i] = data_obj[i, 5] + params[1] * tt / z ;
-      n2hat[i] +=  Kcor(data_obj[i, 1], params[2]) * tt * (data_obj[i, 3] - data_obj[i, 5] + data_obj[i, 4])/2;
+      n2hat[i] = data_obj[i, 5] ;
+
+      // Remove DN
+      if(incl_DN == 1){
+        n2hat[i] += params[2] * tt / z;
+      }
+
+      n2hat[i] +=  Kcor(data_obj[i, 1], params[1]) * tt * (data_obj[i, 3] - data_obj[i, 5] + data_obj[i, 4])/2;
 
       // Add N consumption (DN + Nconsume) for model 4
       if(mod == 4){
-         n2hat[i] += params[3] / z * sum(PPFD[i:(i+lag)]) / PPFDtotal;
+         n2hat[i] += params[2+incl_DN] / z * sum(PPFD[i:(i+lag)]) / PPFDtotal;
       }
 
-      n2hat[i] /=  (1 + Kcor(data_obj[i, 1], params[2]) * tt / 2);
+      n2hat[i] /=  (1 + Kcor(data_obj[i, 1], params[1]) * tt / 2);
     }
 
     // Likelihood
@@ -115,22 +132,28 @@ generated quantities{
   vector[nobs] n2hat;
   vector[nobs] n2pred;
 
-      // -- One-station models (Models 1 and 1)
+  // -- One-station models (Models 1 and 1)
   if(mod < 3){
-    // Initialize
+   // Initialize
     n2hat[1] = data_obj[1, 3];
 
     // Model loop
     for(i in 2:nobs){
-      n2hat[i] = n2hat[i - 1] + params[1] * data_obj[i, 4] / z ;
-      n2hat[i] +=  Kcor(data_obj[i, 1], params[2]) * data_obj[i, 4] * (data_obj[i, 2] + data_obj[i - 1, 2] - n2hat[i - 1])/2;
+      n2hat[i] = n2hat[i - 1];
+
+      // Remove DN
+      if(incl_DN == 1){
+        n2hat[i] += params[2] * data_obj[i, 4] / z ;
+      }
+
+      n2hat[i] +=  Kcor(data_obj[i, 1], params[1]) * data_obj[i, 4] * (data_obj[i, 2] + data_obj[i - 1, 2] - n2hat[i - 1])/2;
 
       // Add N consumption (DN + Nconsume) for model 2
       if(mod == 2){
-         n2hat[i] += params[3] / z * PPFD[i] / PPFDtotal;
+         n2hat[i] += params[2+incl_DN] / z * PPFD[i] / PPFDtotal;
       }
 
-      n2hat[i] /=  (1 + Kcor(data_obj[i, 1], params[2]) * data_obj[i, 4] / 2);
+      n2hat[i] /=  (1 + Kcor(data_obj[i, 1], params[1]) * data_obj[i, 4] / 2);
     }
 
     // Posterior predictive
@@ -145,15 +168,21 @@ generated quantities{
   if(mod > 2){
     // Model loop
     for(i in 1:nobs){
-      n2hat[i] = data_obj[i, 5] + params[1] * tt / z ;
-      n2hat[i] +=  Kcor(data_obj[i, 1], params[2]) * tt * (data_obj[i, 3] - data_obj[i, 5] + data_obj[i, 4])/2;
+      n2hat[i] = data_obj[i, 5] ;
+
+      // Remove DN
+      if(incl_DN == 1){
+        n2hat[i] += params[2] * tt / z;
+      }
+
+      n2hat[i] +=  Kcor(data_obj[i, 1], params[1]) * tt * (data_obj[i, 3] - data_obj[i, 5] + data_obj[i, 4])/2;
 
       // Add N consumption (DN + Nconsume) for model 4
       if(mod == 4){
-         n2hat[i] += params[3] / z * sum(PPFD[i:(i+lag)]) / PPFDtotal;
+         n2hat[i] += params[2+incl_DN] / z * sum(PPFD[i:(i+lag)]) / PPFDtotal;
       }
 
-      n2hat[i] /=  (1 + Kcor(data_obj[i, 1], params[2]) * tt / 2);
+      n2hat[i] /=  (1 + Kcor(data_obj[i, 1], params[1]) * tt / 2);
     }
 
     // Posterior predictive
