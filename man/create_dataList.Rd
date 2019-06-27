@@ -5,13 +5,13 @@
 \title{Data list}
 \usage{
 create_dataList(data, model = 1, Kmean = 4.03, Ksd = 4, up = "up1",
-  down = "down1", tt = 0.1909720833, depth = 0.5588,
-  PPFDstart = 14)
+  down = "down1", tt = 0.1909720833, lag_divisor = 0.0636573611,
+  depth = 0.5588, PPFDstart = 14)
 }
 \arguments{
-\item{data}{data.frame object with columnds for station, temperature, n2.ar, light, bp, z, and dtime, arsat, and n2sat}
+\item{data}{data.frame object with columnds for station, temperature, n2.ar, light, bp, z, and dtime, arsat, and n2sat, or oxy in the case of model == 0.}
 
-\item{model}{Model number for fitting algorithm.}
+\item{model}{Model number for fitting algorithm (see details bleow).}
 
 \item{Kmean}{Mean of normal prior distribution for K600}
 
@@ -21,7 +21,9 @@ create_dataList(data, model = 1, Kmean = 4.03, Ksd = 4, up = "up1",
 
 \item{down}{Name indicating the down-river station name}
 
-\item{tt}{Time between stations}
+\item{tt}{Time between stations for two station model}
+
+\item{lag_divisor}{The value for tt to be divided by to estimate lag time between stations for two-station model}
 
 \item{depth}{Depth (m)}
 
@@ -31,5 +33,5 @@ create_dataList(data, model = 1, Kmean = 4.03, Ksd = 4, up = "up1",
 Creates a list of data objects to be used by stan
 }
 \details{
-Model determines which model to estimate. 1 is the single station model without N consumption (DN base model; Eq. 3 from Nifong et al.), 2 is the single station model with N consumption (DN + Nconsume; Eq. 4 from Nifong et al.), the  3 being the two-station model without N consumption (DN base; Eq. 5 from Nifong et al.), and 4 being the two station model with N consumption (DN N consume; Eq. 6 from Nifong et al.).
+Model determines which model to estimate. 0 is the oxygen model (Eq. 2 from Nifong et al), 1 is the single station model without N consumption (DN base model; Eq. 3 from Nifong et al.), 2 is the single station model with N consumption (DN + Nconsume; Eq. 4 from Nifong et al.), the  3 being the two-station model without N consumption (DN base; Eq. 5 from Nifong et al.), and 4 being the two station model with N consumption (DN N consume; Eq. 6 from Nifong et al.).
 }

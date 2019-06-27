@@ -5,12 +5,12 @@
 \title{Estimate model}
 \usage{
 fitmod(dataList, model = 3, nChains = 2, niter = 5000,
-  burnin = 1000, verbose = FALSE)
+  burnin = 1000, verbose = FALSE, incl_DN = TRUE)
 }
 \arguments{
 \item{dataList}{dataList created by \code{create_dataList}}
 
-\item{model}{Model number for fitting algorithm.}
+\item{model}{Model number for fitting algorithm (see details bleow).}
 
 \item{nChains}{Number of chains to run}
 
@@ -24,7 +24,7 @@ fitmod(dataList, model = 3, nChains = 2, niter = 5000,
 fits a stan model and returns a stan model object
 }
 \details{
-Model determines which model to estimate. 1 is the single station model without N consumption (DN base model; Eq. 3 from Nifong et al.), 2 is the single station model with N consumption (DN + Nconsume; Eq. 4 from Nifong et al.), the  3 being the two-station model without N consumption (DN base; Eq. 5 from Nifong et al.), and 4 being the two station model with N consumption (DN N consume; Eq. 6 from Nifong et al.).
+Model determines which model to estimate. 0 is the oxygen model (Eq. 2 from Nifong et al), 1 is the single station model without N consumption (DN base model; Eq. 3 from Nifong et al.), 2 is the single station model with N consumption (DN + Nconsume; Eq. 4 from Nifong et al.), the  3 being the two-station model without N consumption (DN base; Eq. 5 from Nifong et al.), and 4 being the two station model with N consumption (DN N consume; Eq. 6 from Nifong et al.).
 }
 \examples{
 
