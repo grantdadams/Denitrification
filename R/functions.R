@@ -118,10 +118,10 @@ arsatfc<-function(temp, salinity, bp){
 #' @param model Model number for fitting algorithm (see details bleow).
 #' @param Kmean Mean of normal prior distribution for K600
 #' @param Ksd Sd of normal prior distribution for K600
-#' @param up Name indicating the up-river station name
-#' @param down Name indicating the down-river station name
-#' @param tt Time between stations for two station model
-#' @param lag_divisor The value for tt to be divided by to estimate lag time between stations for two-station model
+#' @param up Name indicating the up-river station name for two-station models. Ignored if model = 1 or model = 2.
+#' @param down Name indicating the down-river station name for two-station models. Ignored if model = 1 or model = 2.
+#' @param tt Time between stations for two station model. Ignored if model = 1 or model = 2.
+#' @param lag_divisor The value for tt to be divided by to estimate lag time between stations for two-station models. Ignored if model = 1 or model = 2.
 #' @param depth Depth (m)
 #' @param PPFDstart Start time (hours) for calculating daily total of photosynthetic photon flux density (PPFD). Calculated by summing across column light for the next 24 hours from the first PPFDstart time.
 #'
